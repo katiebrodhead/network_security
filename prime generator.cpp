@@ -6,28 +6,22 @@ using namespace std;
 void fermat();
 int main()
 {
+	unsigned long int s_user1, s_user2,t_batemp,t_abtemp, t_ba,t_ab,shared_key, shared_keytemp;
+	cout << "User 1, please select your secret key = ";
+	cin >> s_user1;
+	cout << "User 2, please select your secret key = ";
+	cin >> s_user2;
 
-/*	int random;
-	srand((unsigned)time(0));
-	random = rand() % 999;
-	cout << random << endl;
-	int p = 11;
-	int temp = pow(p, random - 1);
+	t_batemp = pow(7, s_user1);
+	t_abtemp = pow(7, s_user2);
+	t_ab = t_abtemp % 11; //mod 11, because there was some problem in generating random prime so took 11 as temp. 
+	t_ba = t_batemp % 11;
+	cout << "The session key for user 1 is T_ba = " <<t_ba<<"\n";
+	cout << "The session key for user 2 is T_ab = " << t_ab << endl;
+	shared_keytemp = pow(pow(11, s_user1),s_user2);
+	shared_key = shared_keytemp % 11;
+	cout << "The key to encrypt a message is : " << shared_key<<endl;
 
-	if ((temp % random == 1))
-		cout << random << " is prime" << endl;
-
-	else
-		cout << random << " is not prime" << endl;
-	
-int a = 6, n = 10,prime;
-prime = pow(a, n - 1);
-if(prime % n == 1)
-	cout<< " 'n' is prime" << n << endl;
-
-else
-	cout << " 'n' is not prime" << endl;
-*/
 	fermat();
 	return 0;
 }
@@ -54,3 +48,4 @@ else
 		cout << random << " is  prime"<< endl;
 		
 	}
+	
