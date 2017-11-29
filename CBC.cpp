@@ -63,7 +63,8 @@ void CBC::decrypt(std::string M, std::string C, int key, int IV)
 		std::cout << "Cannot open C file to decrypt" << std::endl;
 		return;
 	}
-	outfile = fopen("temp.txt", "wb");
+	outfile = fopen(M.c_str(), "wb");
+	//outfile = fopen("temp.txt", "wb");
 	
 	while(!feof(infile)){
 		memset(&C2, 0, sizeof(C2));
