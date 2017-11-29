@@ -6,6 +6,9 @@
 #include<iostream>
 #include<string>
 #include <utility>      // std::pair
+#include <fstream>
+#include "CBC.h"
+#include<iomanip>
 using namespace std;
 
 //const int LOW_LIMIT = 45000;
@@ -74,11 +77,39 @@ int main()
 
 	cout << "The mod " << p << " shared key g^(ab) is " << shared_key << endl;
 
-	int message;
-	cout << user1 << ", give the numerical message you wish to send " << user2 << ": " << endl;
-	cin >> message;
+	string plaintext;
+	cout << user1 << ", give the name of the file you wish to encrypt" << user2 << ": " << endl;
+	cin >> plaintext;
 
-	//CONTINUE coding here
+	string ciphertext;
+	cout << user1 << ", give the name of the encrypted file you will send" << user2 << ": " << endl;
+	cin >> ciphertext;
+
+	CBC encryption;
+	int IV = encryption.encrypt(plaintext, ciphertext, shared_key);
+
+	cout << "Here is the ciphertext."  << endl;
+
+	char inchar= ' ';
+	ifstream  f;
+	f.open(ciphertext);
+	while (f.get (inchar))
+		cout<< (char) inchar;
+	cout << endl;
+	f.close();
+
+	cout << "Here is the decrpted plaintext."  << endl;
+
+
+	encryption.decrypt("decrypted_text.txt", ciphertext, shared_key, IV);
+
+	inchar= ' ';
+	ifstream decrypted_file;
+	decrypted_file.open("decrypted_text.txt");
+	while (decrypted_file.get (inchar))
+		cout<< (char) inchar;
+	cout << endl;
+	decrypted_file.close();
 
 
 	return 0;
