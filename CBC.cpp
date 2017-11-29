@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string.h>
 #include <stdio.h>
-#include <cstdlib>
+#include <stdlib.h>
 #include <fstream>
 #include <unistd.h>
 #include "CBC.h"
@@ -12,61 +12,62 @@ int CBC::encrypt(std::string M, std::string C, int key)
 	int IV = std::rand() % sizeof(uint64_t);
 	uint64_t C1, C2;
 	uint32_t left, right;
-
+	
+	FILE * infile;
+	FILE * outfile;
 	
 	// read from M 
-	std::ifstream infile(M, std::ifstream::binary);
-	if(!infile){
+	infile = fopen(M.c_str(), "rb");
+	if(infile == NULL){
+		std::cout << "Cannot open M file to encrypt" << std::endl;
 		return 0;
 	}
-	std::ofstream outfile(C, std::ofstream::binary);
+	outfile = fopen(C.c_str(), "wb");
 	
+	C1 = IV;
 	
-	
-	while(!infile.eof()){
+	while(!feof(infile)){
 		// C0 use IV during XOR with C1
 		memset(&C2, 0,sizeof(C2));
-		infile.read(&C2, sizeof(C2));
-		if(!C1){
-			C2 = IV ^ C2;
-			left = (C2>>32) & 0xFFFFFFFF;
-			right = C2 & 0xFFFFFFFF;
-			C2 = enc(left, right, key);
-			C1 = C2;
-		}
-		// use C1 to XOR with C2 
-		else{
-			C2 = C1 ^ C2;
-			left = (C2>>32) & 0xFFFFFFFF;
-			right = C2 & 0xFFFFFFFF;
-			C2 = enc(left, right, key);
-			C1 = C2;
-		}
+		fread(&C2, 1, sizeof(C2), infile);
 		
-		outfile.write(&C2, sizeof(C2));			// append ciphertext to outfile
+		C2 = C1 ^ C2;
+		left = (C2>>32) & 0xFFFFFFFF;
+		right = C2 & 0xFFFFFFFF;
+		C2 = enc(left, right, key);
+		C1 = C2;
+		
+		fwrite(&C2, 1, sizeof(C2), outfile);			// append ciphertext to outfile
 	}
 	
-	infile.close();
-	outfile.close();
+	
+	
+	fclose(infile);
+	fclose(outfile);
+	
 	return IV;
 }
 
 void CBC::decrypt(std::string M, std::string C, int key, int IV)
 {
-	uint64_t C1, C2;
-	uint32_t left, right, temp;
+	uint64_t C1, C2, temp;
+	uint32_t left, right;
 	int first = 1;
+	FILE * infile;
+	FILE * outfile;
+	
 	
 	// read from C 
-	std::ifstream infile(C, std::ifstream::binary);
-	if(!infile){
+	infile = fopen(C.c_str(), "rb");
+	if(infile == NULL){
+		std::cout << "Cannot open C file to decrypt" << std::endl;
 		return;
 	}
-	std::ofstream outfile(M, std::ofstream::binary);
+	outfile = fopen("temp.txt", "wb");
 	
-	while(!infile.eof()){
+	while(!feof(infile)){
 		memset(&C2, 0, sizeof(C2));
-		infile.read(&C2, sizeof(C2));
+		fread(&C2, 1, sizeof(C2), infile);
 		temp = C2;
 		left = (C2>>32) & 0xFFFFFFFF;
 		right = C2 & 0xFFFFFFFF;
@@ -79,11 +80,39 @@ void CBC::decrypt(std::string M, std::string C, int key, int IV)
 			C2 ^= C1;
 		}
 		C1 = temp;
-		outfile.write(&C2, sizeof(C2));	
+		fwrite(&C2, 1, sizeof(C2), outfile);	
 	}
 	
-	infile.close();
-	outfile.close();
+	fclose(infile);
+	fclose(outfile);
+	
+	/*
+	// unpad message
+	std::ifstream padded("temp.txt");
+	std::ofstream unpadded(M.c_str());
+	char notnull;
+	
+	do{
+		padded.get(notnull);
+		if(notnull == NULL){
+			// ignore null padding
+		}
+		else
+			unpadded.put(notnull);
+	}while(!padded.eof());
+		
+	padded.close();
+	unpadded.close();
+	*/
+	/*
+	FILE * fp;
+	std::string command("cat temp.txt | tr -d '\\000'  > ");
+	command.append(M);
+	fp = popen(command.c_str(), "r");
+	pclose(fp);
+	*/
+	
+	return;
 }
 
 int CBC::get_IV()
